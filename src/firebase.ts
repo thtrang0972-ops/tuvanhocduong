@@ -1,20 +1,22 @@
-// src/firebase.ts
-import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Thay thế các giá trị giả bằng cấu hình thật từ Firebase Console của bạn
-// Truy cập trang-9618d trên Firebase -> Project Settings -> General -> Web App
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSy_YOUR_API_KEY_HERE",
-  authDomain: "trang-9618d.firebaseapp.com",
-  projectId: "trang-9618d",
-  storageBucket: "trang-9618d.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyA6E_640cybzMfyVtkZJMth-QmAYqU91_E",
+  authDomain: "nhabep-cd518.firebaseapp.com",
+  databaseURL: "https://nhabep-cd518-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "nhabep-cd518",
+  storageBucket: "nhabep-cd518.firebasestorage.app",
+  messagingSenderId: "266586165160",
+  appId: "1:266586165160:web:02c4117fb26bb2b09d979d",
+  measurementId: "G-9673GTZPCF"
 };
 
-// Khởi tạo Firebase
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-// Khởi tạo và xuất Firestore database
-export const db = getFirestore(app);
+const analytics = getAnalytics(app);
