@@ -1,0 +1,8 @@
+{
+  "name": "Cổng Tư Vấn Tâm Lý học đường của Trường TH và THCS Phước Hưng",
+  "description": "Cổng Tư Vấn Tâm Lý học đường của Trường TH và THCS Phước Hưng. Giáo viên tư vấn: Cô Nguyễn Thị Thuỳ Trang. Nơi học sinh gửi câu hỏi, chia sẻ tâm tư, bày tỏ nguyện vọng và trò chuyện bảo mật.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
