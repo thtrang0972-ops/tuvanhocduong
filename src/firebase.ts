@@ -1,11 +1,8 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getFirestore } from "firebase/firestore";
+// Bạn có thể giữ lại analytics nếu muốn theo dõi lượng truy cập
+// import { getAnalytics } from "firebase/analytics";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyA6E_640cybzMfyVtkZJMth-QmAYqU91_E",
   authDomain: "nhabep-cd518.firebaseapp.com",
@@ -17,6 +14,10 @@ const firebaseConfig = {
   measurementId: "G-9673GTZPCF"
 };
 
-// Initialize Firebase
+// Khởi tạo Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+
+// Khởi tạo và export Firestore database để App.tsx sử dụng
+export const db = getFirestore(app);
+
+// const analytics = getAnalytics(app); // Bỏ dấu comment dòng này nếu bạn muốn dùng Analytics
