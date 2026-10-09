@@ -14,68 +14,152 @@ import { Footer } from './components/Footer';
 import { Confession, WishItem, HopeNote, SOSAlert } from './types';
 import { DEFAULT_SCHOOL_SETTINGS } from './data/mockData';
 
-// ĐÃ XÓA CÁC DÒNG IMPORT FIREBASE Ở ĐÂY
-
 export default function App() {
   const [activeTab, setActiveTab] = useState<'confessions' | 'wishbox' | 'wall_of_hope' | 'counseling'>('confessions');
 
-  // Modals state
   const [isSOSOpen, setIsSOSOpen] = useState(false);
   const [isWriteConfessionOpen, setIsWriteConfessionOpen] = useState(false);
   const [isLookupModalOpen, setIsLookupModalOpen] = useState(false);
 
-  // Locked School Settings
   const schoolSettings = DEFAULT_SCHOOL_SETTINGS;
 
-  // States quản lý dữ liệu 
   const [confessions, setConfessions] = useState<Confession[]>([]);
   const [wishes, setWishes] = useState<WishItem[]>([]);
   const [hopeNotes, setHopeNotes] = useState<HopeNote[]>([]);
   const [, setSosAlerts] = useState<SOSAlert[]>([]);
 
-  // LẮNG NGHE DỮ LIỆU REALTIME TỪ FIREBASE ĐÃ BỊ ẨN
-  /*
-  useEffect(() => {
-    // Lắng nghe Confessions
-    const unsubConfessions = onSnapshot(collection(db, 'confessions'), (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Confession[];
-      setConfessions(data.reverse()); 
-    });
-
-    // Lắng nghe Wishes
-    const unsubWishes = onSnapshot(collection(db, 'wishes'), (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as WishItem[];
-      setWishes(data.reverse());
-    });
-
-    // Lắng nghe Hope Notes
-    const unsubHopeNotes = onSnapshot(collection(db, 'hope_notes'), (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as HopeNote[];
-      setHopeNotes(data.reverse());
-    });
-
-    // Lắng nghe SOS Alerts
-    const unsubSos = onSnapshot(collection(db, 'sos_alerts'), (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as SOSAlert[];
-      setSosAlerts(data.reverse());
-    });
-
-    // Cleanup listeners
-    return () => {
-      unsubConfessions();
-      unsubWishes();
-      unsubHopeNotes();
-      unsubSos();
-    };
-  }, []);
-  */
-
-  // HANDLERS CHO CONFESSIONS
   const handleAddReaction = async (
     confessionId: string,
     reactionType: 'hug' | 'sympathy' | 'cheer' | 'sparkle'
   ) => {
     const confessionToUpdate = confessions.find((c) => c.id === confessionId);
     if (!confessionToUpdate) return;
+    console.log(`Đã thả cảm xúc ${reactionType} vào bài ${confessionId}`);
+  };
 
-    const currentActive = confessionToUpdate
+  const handleAddComment = async (
+    confessionId: string,
+    commentText: string,
+    authorNickname = 'Bạn học quan tâm'
+  ) => {
+    const confessionToUpdate = confessions.find((c) => c.id === confessionId);
+    if (!confessionToUpdate) return;
+    console.log(`Bình luận mới từ ${authorNickname}: ${commentText}`);
+  };
+
+  const handleCreateConfession = async (
+    newConf: Omit<Confession, 'id' | 'createdAt' | 'reactions' | 'userReactions' | 'comments'>
+  ) => {
+    const trackingCode = newConf.isPrivateToCounselor
+      ? `TL-${Math.floor(1000 + Math.random() * 9000)}`
+      : undefined;
+    console.log(`Đã tạo Confession mới`);
+    return { trackingCode };
+  };
+
+  const handleUpvoteWish = async (wishId: string) => {
+    console.log(`Đã vote cho wish ${wishId}`);
+  };
+
+  const handleCreateWish = async (
+    newWish: Omit<WishItem, 'id' | 'createdAt' | 'upvotes' | 'hasUpvoted' | 'status' | 'schoolReply'>
+  ) => {
+    console.log(`Đã tạo Wish mới`);
+  };
+
+  const handleLikeHopeNote = async (noteId: string) => {
+    console.log(`Đã thả tim cho note ${noteId}`);
+  };
+
+  const handleCreateHopeNote = async (
+    newNote: Omit<HopeNote, 'id' | 'likes' | 'hasLiked' | 'createdAt'>
+  ) => {
+    console.log(`Đã tạo Hope Note mới`);
+  };
+
+  const handleSubmitSOS = async (alertData: Omit<SOSAlert, 'id' | 'timestamp' | 'status'>) => {
+    console.log(`Đã gửi SOS`);
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 antialiased selection:bg-rose-100 selection:text-rose-900">
+      <Navbar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        onOpenSOS={() => setIsSOSOpen(true)}
+        schoolName={schoolSettings.schoolName}
+      />
+
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 grow w-full">
+        <HeroSection
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onOpenSOS={() => setIsSOSOpen(true)}
+          onOpenWriteModal={() => setIsWriteConfessionOpen(true)}
+          schoolSettings={schoolSettings}
+        />
+
+        {activeTab === 'confessions' && (
+          <ConfessionSection
+            confessions={confessions}
+            onAddReaction={handleAddReaction}
+            onAddComment={handleAddComment}
+            onOpenWriteModal={() => setIsWriteConfessionOpen(true)}
+            onOpenLookupModal={() => setIsLookupModalOpen(true)}
+          />
+        )}
+
+        {activeTab === 'wishbox' && (
+          <WishboxSection
+            wishes={wishes}
+            onUpvote={handleUpvoteWish}
+            onCreateWish={handleCreateWish}
+          />
+        )}
+
+        {activeTab === 'wall_of_hope' && (
+          <WallOfHopeSection
+            hopeNotes={hopeNotes}
+            onLikeNote={handleLikeHopeNote}
+            onCreateHopeNote={handleCreateHopeNote}
+          />
+        )}
+
+        {activeTab === 'counseling' && (
+          <CounselingSection
+            onOpenSOS={() => setIsSOSOpen(true)}
+            onOpenWriteModal={() => setIsWriteConfessionOpen(true)}
+            schoolSettings={schoolSettings}
+          />
+        )}
+      </main>
+
+      <FloatingSOSButton onOpenSOS={() => setIsSOSOpen(true)} />
+
+      <EmergencyModal
+        isOpen={isSOSOpen}
+        onClose={() => setIsSOSOpen(false)}
+        onSubmitSOS={handleSubmitSOS}
+        schoolSettings={schoolSettings}
+      />
+
+      <ConfessionModal
+        isOpen={isWriteConfessionOpen}
+        onClose={() => setIsWriteConfessionOpen(false)}
+        onSubmit={handleCreateConfession}
+      />
+
+      <CounselorLookupModal
+        isOpen={isLookupModalOpen}
+        onClose={() => setIsLookupModalOpen(false)}
+        confessions={confessions}
+      />
+
+      <Footer
+        onOpenSOS={() => setIsSOSOpen(true)}
+        setActiveTab={setActiveTab}
+        schoolSettings={schoolSettings}
+      />
+    </div>
+  );
+}
