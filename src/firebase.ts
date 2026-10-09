@@ -1,18 +1,20 @@
+// src/firebase.ts
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
-// Cấu hình từ project nhabep-cd518 của bạn
+// Thay thế các giá trị giả bằng cấu hình thật từ Firebase Console của bạn
+// Truy cập trang-9618d trên Firebase -> Project Settings -> General -> Web App
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY", // Thay thế bằng API key thực tế của bạn
+  apiKey: "AIzaSy_YOUR_API_KEY_HERE",
   authDomain: "nhabep-cd518.firebaseapp.com",
   projectId: "nhabep-cd518",
-  storageBucket: "nhabep-cd518.appspot.com", // hoặc nhabep-cd518.firebasestorage.app
-  messagingSenderId: "YOUR_SENDER_ID",
+  storageBucket: "nhabep-cd518.firebaseapp.com",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
   appId: "YOUR_APP_ID"
 };
 
-// Khởi tạo app
+// Khởi tạo Firebase
 const app = initializeApp(firebaseConfig);
 
-// Khởi tạo và export Firestore database
+// Khởi tạo và xuất Firestore database
 export const db = getFirestore(app);
