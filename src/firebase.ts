@@ -6,9 +6,9 @@ import { getFirestore } from 'firebase/firestore';
 // Truy cập trang-9618d trên Firebase -> Project Settings -> General -> Web App
 const firebaseConfig = {
   apiKey: "AIzaSy_YOUR_API_KEY_HERE",
-  authDomain: "nhabep-cd518.firebaseapp.com",
-  projectId: "nhabep-cd518",
-  storageBucket: "nhabep-cd518.firebaseapp.com",
+  authDomain: "trang-9618d.firebaseapp.com",
+  projectId: "trang-9618d",
+  storageBucket: "trang-9618d.appspot.com",
   messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
   appId: "YOUR_APP_ID"
 };
