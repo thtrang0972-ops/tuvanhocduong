@@ -15,7 +15,7 @@ import { Confession, WishItem, HopeNote, SOSAlert } from './types';
 import { DEFAULT_SCHOOL_SETTINGS } from './data/mockData';
 
 // IMPORT FIREBASE
-import { db } from './firebase'; // Đảm bảo đường dẫn này trỏ đúng tới file cấu hình Firebase của bạn
+import { db } from './firebase'; 
 import { 
   collection, 
   onSnapshot, 
@@ -35,18 +35,17 @@ export default function App() {
   // Locked School Settings
   const schoolSettings = DEFAULT_SCHOOL_SETTINGS;
 
-  // States quản lý dữ liệu (Khởi tạo mảng rỗng, dữ liệu sẽ được load từ Firebase)
+  // States quản lý dữ liệu 
   const [confessions, setConfessions] = useState<Confession[]>([]);
   const [wishes, setWishes] = useState<WishItem[]>([]);
   const [hopeNotes, setHopeNotes] = useState<HopeNote[]>([]);
   const [, setSosAlerts] = useState<SOSAlert[]>([]);
 
-  // 1. LẮNG NGHE DỮ LIỆU REALTIME TỪ FIREBASE
+  // LẮNG NGHE DỮ LIỆU REALTIME TỪ FIREBASE
   useEffect(() => {
     // Lắng nghe Confessions
     const unsubConfessions = onSnapshot(collection(db, 'confessions'), (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Confession[];
-      // Sắp xếp tạm thời theo thời gian tạo trên client (nếu cần chuẩn xác hơn hãy query orderBy trên Firebase)
       setConfessions(data.reverse()); 
     });
 
@@ -62,13 +61,13 @@ export default function App() {
       setHopeNotes(data.reverse());
     });
 
-    // Lắng nghe SOS Alerts (Dành cho view của Admin/Cô giáo sau này)
+    // Lắng nghe SOS Alerts
     const unsubSos = onSnapshot(collection(db, 'sos_alerts'), (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as SOSAlert[];
       setSosAlerts(data.reverse());
     });
 
-    // Cleanup listeners khi component unmount
+    // Cleanup listeners
     return () => {
       unsubConfessions();
       unsubWishes();
@@ -77,11 +76,7 @@ export default function App() {
     };
   }, []);
 
-
-  // ==========================================
   // HANDLERS CHO CONFESSIONS
-  // ==========================================
-  
   const handleAddReaction = async (
     confessionId: string,
     reactionType: 'hug' | 'sympathy' | 'cheer' | 'sparkle'
@@ -152,10 +147,7 @@ export default function App() {
     }
   };
 
-  // ==========================================
   // HANDLERS CHO WISHBOX
-  // ==========================================
-  
   const handleUpvoteWish = async (wishId: string) => {
     const wishToUpdate = wishes.find((w) => w.id === wishId);
     if (!wishToUpdate) return;
@@ -193,10 +185,7 @@ export default function App() {
     }
   };
 
-  // ==========================================
   // HANDLERS CHO WALL OF HOPE
-  // ==========================================
-  
   const handleLikeHopeNote = async (noteId: string) => {
     const noteToUpdate = hopeNotes.find((n) => n.id === noteId);
     if (!noteToUpdate) return;
@@ -228,10 +217,7 @@ export default function App() {
     }
   };
 
-  // ==========================================
-  // HANDLER CHO SOS (KHẨN CẤP)
-  // ==========================================
-  
+  // HANDLER CHO SOS
   const handleSubmitSOS = async (alertData: Omit<SOSAlert, 'id' | 'timestamp' | 'status'>) => {
     const alertItem = {
       ...alertData,
@@ -241,16 +227,13 @@ export default function App() {
 
     try {
       await addDoc(collection(db, 'sos_alerts'), alertItem);
-      // Bạn có thể kích hoạt API gửi SMS/Email thật tại đây trong tương lai
     } catch (error) {
       console.error("Lỗi khi gửi SOS:", error);
     }
   };
 
-
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 antialiased selection:bg-rose-100 selection:text-rose-900">
-      {/* Strict Top Bar */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -258,9 +241,7 @@ export default function App() {
         schoolName={schoolSettings.schoolName}
       />
 
-      {/* Main Container */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 grow w-full">
-        {/* Welcoming Hero & Pillar Overview */}
         <HeroSection
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -269,7 +250,6 @@ export default function App() {
           schoolSettings={schoolSettings}
         />
 
-        {/* Dynamic Section Display */}
         {activeTab === 'confessions' && (
           <ConfessionSection
             confessions={confessions}
@@ -305,10 +285,8 @@ export default function App() {
         )}
       </main>
 
-      {/* Persistent Floating Emergency SOS Button */}
       <FloatingSOSButton onOpenSOS={() => setIsSOSOpen(true)} />
 
-      {/* Emergency Crisis Modal */}
       <EmergencyModal
         isOpen={isSOSOpen}
         onClose={() => setIsSOSOpen(false)}
@@ -316,21 +294,18 @@ export default function App() {
         schoolSettings={schoolSettings}
       />
 
-      {/* Write Confession Modal */}
       <ConfessionModal
         isOpen={isWriteConfessionOpen}
         onClose={() => setIsWriteConfessionOpen(false)}
         onSubmit={handleCreateConfession}
       />
 
-      {/* Counselor Private Letter Lookup Modal */}
       <CounselorLookupModal
         isOpen={isLookupModalOpen}
         onClose={() => setIsLookupModalOpen(false)}
-        confessions={confessions} // Chức năng lookup mã TL-xxxx vẫn chạy bình thường trên mảng này
+        confessions={confessions}
       />
 
-      {/* Quiet Clean Footer */}
       <Footer
         onOpenSOS={() => setIsSOSOpen(true)}
         setActiveTab={setActiveTab}
