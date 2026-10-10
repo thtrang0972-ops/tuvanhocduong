@@ -11,17 +11,15 @@ const TEST_QUESTIONS = [
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
-  const [formData, setFormData] = useState({ category: 'Áp lực học tập', title: '', content: '' });
+  const [formData, setFormData] = useState({ category: 'Áp lực thi cử & Điểm số', title: '', content: '' });
   const [testAnswers, setTestAnswers] = useState<Record<number, number>>({});
   const [testResult, setTestResult] = useState<string | null>(null);
 
-  // Xử lý thay đổi dữ liệu trong form ẩn danh
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Xử lý gửi thư ẩn danh
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.content.trim()) {
@@ -30,15 +28,13 @@ export default function App() {
     }
     const randomCode = 'PH-' + Math.floor(100000 + Math.random() * 900000);
     alert(`✉️ Lời tâm sự của em đã được mã hóa an toàn và chuyển đến cô Trang!\n🔑 MÃ TRA CỨU BÍ MẬT CỦA EM: ${randomCode}\n(Em hãy lưu lại mã này để xem phản hồi của cô sau này nhé).`);
-    setFormData({ category: 'Áp lực học tập', title: '', content: '' });
+    setFormData({ category: 'Áp lực thi cử & Điểm số', title: '', content: '' });
   };
 
-  // Xử lý chọn điểm số trắc nghiệm tâm lý
   const handleAnswerSelect = (qId: number, score: number) => {
     setTestAnswers(prev => ({ ...prev, [qId]: score }));
   };
 
-  // Tự động tính toán thang điểm DASS và đưa ra lời khuyên tâm lý chung
   const calculateTestScore = () => {
     const answersArray = Object.values(testAnswers);
     const totalScore = answersArray.reduce((sum, score) => sum + score, 0);
@@ -60,7 +56,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#F4F8F6] text-slate-700 font-sans antialiased selection:bg-teal-100 selection:text-teal-900">
       
-      {/* ================= 1. NÚT SOS CẤP CỨU CỐ ĐỊNH GÓC MÀN HÌNH ================= */}
+      {/* NÚT SOS CẤP CỨU CỐ ĐỊNH */}
       <div className="fixed bottom-6 right-6 z-50">
         <a 
           href="tel:0972374692"
@@ -70,7 +66,7 @@ export default function App() {
         </a>
       </div>
 
-      {/* ================= 2. THANH TIÊU ĐỀ (HEADER) PASTEL CHỮA LÀNH ================= */}
+      {/* THANH TIÊU ĐỀ (HEADER) */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100 px-6 py-4 shadow-sm">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -92,10 +88,9 @@ export default function App() {
         </div>
       </header>
 
-      {/* ================= 3. KHU VỰC NỘI DUNG CHÍNH (MAIN SCREEN) ================= */}
+      {/* KHU VỰC NỘI DUNG CHÍNH */}
       <main className="max-w-7xl mx-auto px-4 py-10 space-y-12">
         
-        {/* TAB HOME: BANNER CHÀO MỪNG THÂN THIỆN & KHỐI TÍNH NĂNG */}
         {activeTab === 'home' && (
           <>
             <section className="bg-gradient-to-r from-teal-500 via-emerald-600 to-cyan-600 rounded-3xl p-8 md:p-12 shadow-md text-white relative overflow-hidden">
@@ -113,7 +108,6 @@ export default function App() {
               </div>
             </section>
 
-            {/* BA KHỐI HỘP MINH HỌA HÌNH ẢNH VECTOR ĐẸP, MỊN MÀNG */}
             <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
                 <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center font-bold text-xl mb-4 group-hover:scale-105 transition-transform">🔒</div>
@@ -128,5 +122,13 @@ export default function App() {
               <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
                 <div className="w-12 h-12 bg-teal-50 text-teal-500 rounded-2xl flex items-center justify-center font-bold text-xl mb-4 group-hover:scale-105 transition-transform">📚</div>
                 <h3 className="font-bold text-base text-slate-800 mb-1.5">Thư Viện Tài Liệu Tự Chăm Sóc</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">Cung cấp các cẩm nang, kỹ năng quản lý cảm xúc, giải quyết xung đột bạn bè lành mạnh dành riêng cho học sinh và phụ huynh.</p>
+              </div>
+            </section>
+          </>
+        )}
 
-
+        {activeTab === 'anon' && (
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <div className="lg:col-span-2 bg-white p-6 md:p-8 rounded-2xl border border-slate-100 shadow-sm space-y-6">
+              <div>
