@@ -1,10 +1,11 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+// Cấu hình tối giản thuần Vite giúp tương thích 100% với môi trường Vercel mà không bị lỗi kiểu dữ liệu
 export default defineConfig({
   plugins: [react()],
-  base: '/', // ⬅️ Dòng này bắt buộc phải có để Vercel nhận diện đúng đường dẫn file giao diện
+  base: '/',
   build: {
     outDir: 'dist',
-  },
+  }
 });
