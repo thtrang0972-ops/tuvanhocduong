@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 
-// Dữ liệu câu hỏi trắc nghiệm tâm lý DASS-21 rút gọn chuẩn học đường
 const TEST_QUESTIONS = [
   { id: 1, text: "Em cảm thấy khó khăn trong việc bớt căng thẳng, thả lỏng cơ thể khi gặp áp lực học tập." },
   { id: 2, text: "Em bị khô miệng, tim đập nhanh hoặc cảm thấy lo lắng vô cớ trước mỗi kỳ thi." },
@@ -56,7 +55,6 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#F4F8F6] text-slate-700 font-sans antialiased selection:bg-teal-100 selection:text-teal-900">
       
-      {/* NÚT SOS CẤP CỨU CỐ ĐỊNH */}
       <div className="fixed bottom-6 right-6 z-50">
         <a 
           href="tel:0972374692"
@@ -66,7 +64,6 @@ export default function App() {
         </a>
       </div>
 
-      {/* THANH TIÊU ĐỀ (HEADER) */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100 px-6 py-4 shadow-sm">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -88,7 +85,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* KHU VỰC NỘI DUNG CHÍNH */}
       <main className="max-w-7xl mx-auto px-4 py-10 space-y-12">
         
         {activeTab === 'home' && (
@@ -132,3 +128,4 @@ export default function App() {
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2 bg-white p-6 md:p-8 rounded-2xl border border-slate-100 shadow-sm space-y-6">
               <div>
+                <h3 className="text-lg font-bold text-slate-800 tracking-tight">Hộp Thư "Điều Em Muốn Nói"</h3>
