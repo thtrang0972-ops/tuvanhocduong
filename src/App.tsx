@@ -1,143 +1,171 @@
 import React, { useState } from 'react';
+import { 
+  Heart, MessageCircle, BookOpen, User, Calendar, Smile, Compass, 
+  Bell, Send, ShieldAlert, Sparkles, Search, MapPin, Phone, 
+  Video, Users, FileText, CheckCircle2, ChevronRight, HelpCircle
+} from 'lucide-react';
 
 export default function App() {
+  // Quản lý trạng thái giao diện chính
   const [activeTab, setActiveTab] = useState('home');
-  const [formData, setFormData] = useState({ category: 'Áp lực học tập', title: '', content: '' });
-  const [q1, setQ1] = useState(-1);
-  const [q2, setQ2] = useState(-1);
-  const [q3, setQ3] = useState(-1);
-  const [testResult, setTestResult] = useState('');
+  const [userRole, setUserRole] = useState<'student' | 'parent' | 'expert'>('student');
+  const [selectedMethod, setSelectedMethod] = useState<'direct' | 'online' | 'chat'>('direct');
+  
+  // Trạng thái cho bài Test DASS-21 rút gọn (Ví dụ 3 câu đại diện cho 3 nhánh Stress - Lo âu - Trầm cảm)
+  const [dassAnswers, setDassAnswers] = useState<Record<number, number>>({});
+  const [dassResult, setDassResult] = useState<string | null>(null);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  // Trạng thái hòm thư ẩn danh
+  const [anonymousMail, setAnonymousMail] = useState({ title: '', content: '' });
+  const [mailSubmitted, setMailSubmitted] = useState(false);
 
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.content.trim()) {
-      alert("Em hãy viết nội dung tâm sự trước khi gửi nhé!");
+  // Câu hỏi DASS-21 giả lập đại diện
+  const dassQuestions = [
+    { id: 1, text: "Mình cảm thấy khó khăn trong việc giữ bình tĩnh hoặc thả lỏng cơ thể." },
+    { id: 2, text: "Mình bị khô miệng, thở gấp hoặc ra mồ hôi tay vô cớ." },
+    { id: 3, text: "Mình cảm thấy bản thân không có gì để mong đợi phía trước." }
+  ];
+
+  // Hàm tính điểm DASS tự động
+  const handleCalculateDASS = () => {
+    const totalScore = Object.values(dassAnswers).reduce((a, b) => a + b, 0);
+    if (Object.keys(dassAnswers).length < dassQuestions.length) {
+      alert("Cậu vui lòng trả lời đầy đủ các câu hỏi nhé!");
       return;
     }
-    const randomCode = 'PH-' + Math.floor(100000 + Math.random() * 900000);
-    alert(`✉️ Lời tâm sự của em đã được gửi ẩn danh an toàn đến Cô Trang!\n🔑 MÃ TRA CỨU BÍ MẬT: ${randomCode}`);
-    setFormData({ category: 'Áp lực học tập', title: '', content: '' });
-  };
-
-  const calculateScore = () => {
-    if (q1 === -1 || q2 === -1 || q3 === -1) {
-      alert("Em vui lòng chọn câu trả lời cho đầy đủ cả 3 câu hỏi nhé!");
-      return;
-    }
-    const total = q1 + q2 + q3;
-    if (total <= 2) {
-      setTestResult(`🟢 Chỉ số Stress ở mức BÌNH THƯỜNG (${total} điểm). Sức khỏe tinh thần của em rất tốt!`);
-    } else if (total <= 5) {
-      setTestResult(`🟡 Chỉ số Stress ở mức độ NHẸ (${total} điểm). Em đang hơi mệt mỏi, hãy nghỉ ngơi nhiều hơn nhé.`);
+    if (totalScore <= 2) {
+      setDassResult(`Điểm của cậu là ${totalScore}/9 (Bình thường) — Tâm trạng của cậu đang khá ổn định. Hãy tiếp tục duy trì lối sống lành mạnh nhé!`);
+    } else if (totalScore <= 5) {
+      setDassResult(`Điểm của cậu là ${totalScore}/9 (Mức độ Nhẹ - Vừa) — Cậu đang có chút lo lắng hoặc áp lực nhẹ. Hãy thử thư giãn hoặc nhắn tin trò chuyện với Cô Thùy Trang nha.`);
     } else {
-      setTestResult(`🔴 Chỉ số Stress ở mức độ CAO (${totalScore || total} điểm). Em đang áp lực lớn, hãy bấm nút SOS để trò chuyện trực tiếp cùng cô Trang ngay nhé!`);
+      setDassResult(`Điểm của cậu là ${totalScore}/9 (Mức độ Cao) — Áp lực đang đè nặng lên cậu rồi. Cậu nên nhấn ngay vào nút "Hỗ trợ khẩn cấp" hoặc hẹn gặp Cô Thùy Trang để nhận trợ giúp tốt nhất.`);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F8F6] text-slate-700 font-sans antialiased">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800 font-sans antialiased pb-12">
       
-      {/* NÚT SOS KHẨN CẤP */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <a href="tel:0972374692" className="bg-rose-500 hover:bg-rose-600 text-white font-bold px-5 py-3.5 rounded-full shadow-lg border-2 border-white text-sm tracking-wide">
-          🚨 SOS KHẨN CẤP
-        </a>
-      </div>
-
-      {/* THANH MENU TIÊU ĐỀ */}
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-100 px-6 py-4 shadow-sm">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-teal-500 rounded-xl flex items-center justify-center text-white font-bold text-lg">♥</div>
+      {/* 1. HÀNG TRÊN: THÔNG TIN TRƯỜNG & BANNER CỔNG TƯ VẤN */}
+      <header className="bg-white border-b border-slate-200/80 shadow-sm sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 py-3 md:py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* Thông tin trường vế trái */}
+          <div className="flex items-start space-x-3">
+            <div className="bg-gradient-to-tr from-emerald-500 to-teal-500 p-2.5 rounded-2xl text-white shadow-md shadow-emerald-100 flex-shrink-0">
+              <Heart className="w-6 h-6 fill-white" />
+            </div>
             <div>
-              <h1 className="text-lg font-extrabold text-slate-800 tracking-tight">CỔNG TƯ VẤN TÂM LÝ HỌC ĐƯỜNG</h1>
-              <p className="text-xs font-medium text-teal-600">Trường TH và THCS Phước Hưng • Cô Nguyễn Thị Thuỳ Trang</p>
+              <h2 className="font-black text-slate-800 tracking-tight text-base md:text-lg">TRƯỜNG TH & THCS PHƯỚC HƯNG</h2>
+              <div className="flex flex-col sm:flex-row sm:items-center text-xs text-slate-500 gap-1 sm:gap-3 mt-0.5">
+                <span className="flex items-center"><MapPin className="w-3.5 h-3.5 mr-1 text-slate-400" /> Ấp Phước Khánh, Nhơn Hội, An Giang</span>
+                <span className="hidden sm:inline text-slate-300">|</span>
+                <span className="flex items-center"><Phone className="w-3.5 h-3.5 mr-1 text-slate-400" /> Hotline trường: 0296.XXX.XXX</span>
+              </div>
             </div>
           </div>
-          <nav className="flex gap-2 text-sm font-semibold">
-            <button type="button" onClick={() => setActiveTab('home')} className={`px-4 py-2 rounded-xl ${activeTab === 'home' ? 'bg-teal-50 text-teal-700' : 'text-slate-600'}`}>Trang Chủ</button>
-            <button type="button" onClick={() => setActiveTab('anon')} className={`px-4 py-2 rounded-xl ${activeTab === 'anon' ? 'bg-teal-50 text-teal-700' : 'text-slate-600'}`}>Góc Ẩn Danh</button>
-            <button type="button" onClick={() => setActiveTab('quiz')} className={`px-4 py-2 rounded-xl ${activeTab === 'quiz' ? 'bg-teal-50 text-teal-700' : 'text-slate-600'}`}>Trắc Nghiệm</button>
-            <button type="button" onClick={() => setActiveTab('library')} className={`px-4 py-2 rounded-xl ${activeTab === 'library' ? 'bg-teal-50 text-teal-700' : 'text-slate-600'}`}>Thư Viện</button>
-          </nav>
+
+          {/* Banner chính giữa/phải & Người phụ trách */}
+          <div className="bg-emerald-50/80 border border-emerald-100 rounded-2xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 md:min-w-[400px]">
+            <div>
+              <h1 className="text-sm font-black text-emerald-800 tracking-wide">CỔNG TƯ VẤN TÂM LÝ HỌC ĐƯỜNG</h1>
+              <p className="text-xs text-slate-600 mt-0.5 font-medium">Người phụ trách: <span className="text-emerald-700 font-bold">Nguyễn Thị Thuỳ Trang</span></p>
+            </div>
+            {/* Phân quyền tài khoản nhanh */}
+            <div className="flex bg-white/80 p-1 rounded-xl border border-emerald-200/50 self-start sm:self-auto">
+              {(['student', 'parent', 'expert'] as const).map((role) => (
+                <button
+                  key={role}
+                  onClick={() => setUserRole(role)}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all uppercase ${userRole === role ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                >
+                  {role === 'student' ? 'Học sinh' : role === 'parent' ? 'Phụ huynh' : 'Chuyên viên'}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </header>
 
-      {/* NỘI DUNG CHÍNH */}
-      <main className="max-w-7xl mx-auto px-4 py-10 space-y-12">
+      {/* NÚT SOS KHẨN CẤP LUÔN NỔI GÓC MÀN HÌNH */}
+      <div className="fixed bottom-6 right-6 z-50 animate-bounce">
+        <a 
+          href="tel:111" 
+          className="bg-red-500 hover:bg-red-600 text-white font-black px-5 py-4 rounded-full shadow-2xl flex items-center space-x-2 border-2 border-white tracking-wider text-sm transition-all"
+        >
+          <ShieldAlert className="w-5 h-5 fill-white" />
+          <span>HỖ TRỢ KHẨN CẤP (SOS)</span>
+        </a>
+      </div>
+
+      {/* CHÍNH: BỐ CỤC 2 CỘT */}
+      <div className="max-w-7xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
         
-        {activeTab === 'home' && (
-          <>
-            <section className="bg-gradient-to-r from-teal-500 via-emerald-600 to-cyan-600 rounded-3xl p-8 md:p-12 shadow-md text-white">
-              <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tight leading-tight">Điểm tựa yêu thương & Lắng nghe tuổi học trò</h2>
-              <p className="text-sm font-light leading-relaxed max-w-2xl">Chào mừng các em học sinh đến với không gian tư vấn trực tuyến. Mọi áp lực điểm số thi cử, bất hòa bè bạn đều có thể chia sẻ tại đây dưới sự bảo mật thông tin tuyệt đối 100% của Cô Nguyễn Thị Thuỳ Trang.</p>
-              <div className="pt-4 flex flex-wrap gap-3">
-                <button type="button" onClick={() => setActiveTab('anon')} className="bg-white text-teal-700 font-bold text-sm px-6 py-3 rounded-xl shadow-sm">✉️ Gửi tâm sự ẩn danh</button>
-                <button type="button" onClick={() => setActiveTab('quiz')} className="bg-teal-700/40 text-white font-semibold text-sm px-5 py-3 rounded-xl border border-white/20">📊 Làm bài trắc nghiệm nhanh</button>
-              </div>
-            </section>
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                <div className="text-xl mb-3">🔒</div>
-                <h3 className="font-bold text-base text-slate-800 mb-1">Góc Ẩn Danh An Toàn</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">Hộp thư "Điều em muốn nói" nhận tin nhắn tâm sự kín đáo không lo lộ danh tính.</p>
-              </div>
-              <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                <div className="text-xl mb-3">📊</div>
-                <h3 className="font-bold text-base text-slate-800 mb-1">Đánh Giá Sức Khỏe Tinh Thần</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">Bộ câu hỏi tự động kiểm tra stress lo âu học đường để đưa ra định hướng nhanh.</p>
-              </div>
-              <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                <div className="text-xl mb-3">📚</div>
-                <h3 className="font-bold text-base text-slate-800 mb-1">Thư Viện Kỹ Năng Sống</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">Kho cẩm nang quản lý cảm xúc, giải quyết xung đột bạn bè hữu ích cho các em.</p>
-              </div>
-            </section>
-          </>
-        )}
+        {/* ========================================================
+            CỘT BÊN TRÁI: DANH MỤC CHUYÊN MỤC & HOTLINE & BANNER CHÀO MỪNG
+            ======================================================== */}
+        <aside className="lg:col-span-1 space-y-5">
+          {/* Banner Chào Mừng Thân Thiện */}
+          <div className="bg-gradient-to-br from-teal-400 to-emerald-500 rounded-3xl p-5 text-white shadow-lg shadow-emerald-100 relative overflow-hidden">
+            <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+            <h3 className="font-extrabold text-base mb-1 flex items-center gap-1.5">
+              Chào cậu nhé! <Sparkles className="w-4 h-4 text-amber-200 fill-amber-200" />
+            </h3>
+            <p className="text-xs text-emerald-50 font-light leading-relaxed">
+              MindConnect là không gian lắng nghe an toàn, hoàn toàn ẩn danh dành riêng cho học sinh Phước Hưng. Đừng ngần ngại chia sẻ nhé!
+            </p>
+          </div>
 
-        {activeTab === 'anon' && (
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 bg-white p-6 md:p-8 rounded-2xl border border-slate-100 shadow-sm space-y-6">
-              <h3 className="text-lg font-bold text-slate-800">Hộp Thư "Điều Em Muốn Nói"</h3>
-              <form onSubmit={handleFormSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <select name="category" value={formData.category} onChange={handleInputChange} className="w-full bg-slate-50 border rounded-xl px-4 py-2.5 text-xs font-semibold focus:border-teal-500">
-                    <option>Áp lực thi cử & Điểm số</option>
-                    <option>Mâu thuẫn bè bạn & Bạo lực học đường</option>
-                    <option>Khó khăn chia sẻ với cha mẹ</option>
-                  </select>
-                  <input type="text" name="title" value={formData.title} onChange={handleInputChange} placeholder="Tiêu đề lá thư..." className="w-full bg-slate-50 border rounded-xl px-4 py-2.5 text-xs focus:border-teal-500" />
-                </div>
-                <textarea name="content" value={formData.content} onChange={handleInputChange} rows={6} required placeholder="Hãy viết hết những trăn trở lo âu của em vào đây. Cô luôn ở đây để chia sẻ cùng em..." className="w-full bg-slate-50 border rounded-xl p-4 text-xs focus:border-teal-500 resize-none leading-relaxed" />
-                <div className="flex justify-between items-center border-t pt-4">
-                  <span className="text-xs font-medium text-emerald-600">🔒 Chế độ bảo mật danh tính tuyệt đối đang bật</span>
-                  <button type="submit" className="bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-sm">🚀 Gửi thư an toàn</button>
-                </div>
-              </form>
-            </div>
-            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
-              <h4 className="font-bold text-sm text-slate-800 uppercase tracking-wider">🌱 Bức Tường Động Lực</h4>
-              <div className="bg-rose-50/70 border border-rose-100 p-4 rounded-xl text-xs italic text-slate-600">
-                "Mọi áp lực thi cử hôm nay đều đổi lại bằng sự trưởng thành xứng đáng mai sau. Cố lên các em nhé!" <span className="block text-right font-bold text-rose-500 mt-2">— Cô Thuỳ Trang</span>
-              </div>
-            </div>
-          </section>
-        )}
+          {/* Menu Điều Hướng Tab */}
+          <div className="bg-white rounded-2xl border border-slate-200/60 p-2 shadow-sm space-y-1">
+            {[
+              { id: 'home', label: 'Trang chủ Dashboard', icon: Smile },
+              { id: 'booking', label: 'Đặt lịch tư vấn & Khung giờ', icon: Calendar },
+              { id: 'box', label: 'Hòm thư "Điều em muốn nói"', icon: FileText },
+              { id: 'test', label: 'Trắc nghiệm DASS-21', icon: HelpCircle },
+              { id: 'media', label: 'Cẩm nang & Đa phương tiện', icon: Compass },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left text-xs font-bold transition-all ${activeTab === item.id ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50'}`}
+                >
+                  <Icon className={`w-4 h-4 ${activeTab === item.id ? 'text-emerald-600' : 'text-slate-400'}`} />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
 
-        {activeTab === 'quiz' && (
-          <section className="bg-white p-6 md:p-8 rounded-2xl border border-slate-100 shadow-sm max-w-2xl mx-auto space-y-6">
-            <h3 className="text-lg font-bold text-slate-800">Khảo Sát Đánh Giá Mức Độ Căng Thẳng</h3>
-            <p className="text-xs text-slate-400">Em hãy chọn mức độ đúng nhất với bản thân trong 1 tuần qua:</p>
-            
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-slate-700">1. Em cảm thấy khó bớt căng thẳng hoặc khó thả lỏng cơ thể.</p>
-                <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => setQ1(0)} className={`p-2 rounded-xl border text-xs ${q1 === 0 ? 'bg-teal-600 text-white' : 'bg-slate-50'}`}>Không đúng tí nào</button>
-                  <button type="button" onClick={() => setQ1(1)} className={`p-2 rounded-xl border text-xs ${q1 === 1 ? 'bg-teal-600 text-white' : 'bg-slate-50'}`}>Đúng một phần</button>
+          {/* Hotline Đường Dây Nóng 24/7 */}
+          <div className="bg-rose-50/60 border border-rose-100 rounded-2xl p-4 space-y-3">
+            <div>
+              <p className="text-[10px] font-extrabold text-rose-500 uppercase tracking-widest">Đường dây nóng 24/7</p>
+              <h4 className="font-bold text-slate-800 text-xs mt-0.5">Tổng đài Quốc gia bảo vệ Trẻ em</h4>
+            </div>
+            <div className="bg-white p-2.5 rounded-xl border border-rose-100 flex items-center justify-between">
+              <span className="text-lg font-black text-rose-600">111</span>
+              <span className="text-[10px] bg-rose-100 text-rose-700 px-2 py-0.5 rounded font-bold uppercase">Miễn phí</span>
+            </div>
+          </div>
+        </aside>
+
+        {/* ========================================================
+            CỘT BÊN PHẢI / TRUNG TÂM: HIỂN THỊ NỘI DUNG THEO TAB CHỌN
+            ======================================================== */}
+        <main className="lg:col-span-3 space-y-6">
+          
+          {/* TAB 1: DASHBOARD CHÍNH & LIVE CHAT ẨN DANH */}
+          {activeTab === 'home' && (
+            <div className="space-y-6">
+              {/* Tùy chỉnh hiển thị theo phân quyền người dùng */}
+              <div className="bg-amber-50 border border-amber-200/60 p-4 rounded-2xl flex items-center justify-between">
+                <div className="flex items-center space-x-2 text-xs text-amber-800">
+                  <User className="w-4 h-4 text-amber-600" />
+                  <span>Giao diện đang hiển thị theo quyền: <strong className="uppercase">{userRole === 'student' ? 'Học sinh' : userRole === 'parent' ? 'Phụ huynh' : 'Chuyên viên (Cô Thùy Trang)'}</strong></span>
+                </div>
+                <span className="text-[10px] bg-white border border-amber-200 px-2 py-0.5 rounded-md font-semibold text-amber-700">Bảo mật cao</span>
+              </div>
+
+              {/* Box nội dung động dựa vào quyền truy cập */}
+              {userRole === 'student' && (
