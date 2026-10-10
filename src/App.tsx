@@ -1,245 +1,89 @@
-import React, { useState, useEffect } from 'react';
-import { Navbar } from './components/Navbar';
-import { HeroSection } from './components/HeroSection';
-import { ConfessionSection } from './components/ConfessionSection';
-import { WishboxSection } from './components/WishboxSection';
-import { WallOfHopeSection } from './components/WallOfHopeSection';
-import { CounselingSection } from './components/CounselingSection';
-import { EmergencyModal } from './components/EmergencyModal';
-import { ConfessionModal } from './components/ConfessionModal';
-import { CounselorLookupModal } from './components/CounselorLookupModal';
-import { FloatingSOSButton } from './components/FloatingSOSButton';
-import { Footer } from './components/Footer';
-
-import { Confession, WishItem, HopeNote, SOSAlert } from './types';
-import { DEFAULT_SCHOOL_SETTINGS } from './data/mockData';
-
-// ➕ Nhập cấu hình kết nối Supabase mà bạn đã tạo ở Bước 2
-import { supabase } from './supabaseClient';
+import React from 'react';
+// Nếu bạn có import supabase hoặc gemini, hãy giữ lại các dòng import đó ở trên cùng này nhé!
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'confessions' | 'wishbox' | 'wall_of_hope' | 'counseling'>('confessions');
-
-  const [isSOSOpen, setIsSOSOpen] = useState(false);
-  const [isWriteConfessionOpen, setIsWriteConfessionOpen] = useState(false);
-  const [isLookupModalOpen, setIsLookupModalOpen] = useState(false);
-
-  const schoolSettings = DEFAULT_SCHOOL_SETTINGS;
-
-  const [confessions, setConfessions] = useState<Confession[]>([]);
-  const [wishes, setWishes] = useState<WishItem[]>([]);
-  const [hopeNotes, setHopeNotes] = useState<HopeNote[]>([]);
-  const [, setSosAlerts] = useState<SOSAlert[]>([]);
-
-  // ➕ Tự động tải dữ liệu từ Supabase về khi trang web vừa mở lên
-  useEffect(() => {
-    const fetchAllData = async () => {
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (!error && data) {
-        // Lọc và phân loại tin nhắn dựa theo nội dung hoặc tag (nếu có định nghĩa)
-        // Hiện tại gộp chung đổ vào danh sách để hiển thị test tính năng nhắn nhận
-        const mappedConfessions: Confession[] = data.map((item: any) => ({
-          id: item.id,
-          title: `Tin nhắn từ ${item.sender_name || 'Ẩn danh'}`,
-          content: item.content || '',
-          createdAt: item.created_at,
-          category: 'Chung',
-          reactions: { hug: 0, sympathy: 0, cheer: 0, sparkle: 0 },
-          comments: []
-        }));
-        setConfessions(mappedConfessions);
-      }
-    };
-
-    fetchAllData();
-  }, []);
-
-  const handleAddReaction = async (
-    confessionId: string,
-    reactionType: 'hug' | 'sympathy' | 'cheer' | 'sparkle'
-  ) => {
-    console.log(`Đã thả cảm xúc ${reactionType} vào bài ${confessionId}`);
-  };
-
-  const handleAddComment = async (
-    confessionId: string,
-    commentText: string,
-    authorNickname = 'Bạn học quan tâm'
-  ) => {
-    console.log(`Bình luận mới từ ${authorNickname}: ${commentText}`);
-  };
-
-  // ⚡ SỬA: Hàm gửi Confession (Lời tự sự) - Lưu trực tiếp vào bảng `messages`
-  const handleCreateConfession = async (
-    newConf: Omit<Confession, 'id' | 'createdAt' | 'reactions' | 'userReactions' | 'comments'>
-  ) => {
-    const trackingCode = newConf.isPrivateToCounselor
-      ? `TL-${Math.floor(1000 + Math.random() * 9000)}`
-      : undefined;
-
-    // Tiến hành đẩy lên Supabase
-    const { error } = await supabase
-      .from('messages')
-      .insert([
-        { 
-          sender_name: newConf.nickname || 'Ẩn danh', 
-          content: `[CONFESSION] ${newConf.content}` 
-        }
-      ]);
-
-    if (error) {
-      console.error('Lỗi khi gửi lên Supabase:', error);
-    } else {
-      console.log('Đã lưu Confession thành công vào Supabase!');
-      // Reload lại dữ liệu để cập nhật màn hình
-      window.location.reload();
-    }
-
-    return { trackingCode };
-  };
-
-  const handleUpvoteWish = async (wishId: string) => {
-    console.log(`Đã vote cho wish ${wishId}`);
-  };
-
-  // ⚡ SỬA: Hàm tạo Wish (Hòm điều ước) - Lưu trực tiếp vào bảng `messages`
-  const handleCreateWish = async (
-    newWish: Omit<WishItem, 'id' | 'createdAt' | 'upvotes' | 'hasUpvoted' | 'status' | 'schoolReply'>
-  ) => {
-    const { error } = await supabase
-      .from('messages')
-      .insert([
-        { 
-          sender_name: 'Học sinh ước', 
-          content: `[WISHBOX] ${newWish.content}` 
-        }
-      ]);
-
-    if (!error) window.location.reload();
-  };
-
-  const handleLikeHopeNote = async (noteId: string) => {
-    console.log(`Đã thả tim cho note ${noteId}`);
-  };
-
-  // ⚡ SỬA: Hàm tạo Hope Note (Lời chúc) - Lưu trực tiếp vào bảng `messages`
-  const handleCreateHopeNote = async (
-    newNote: Omit<HopeNote, 'id' | 'likes' | 'hasLiked' | 'createdAt'>
-  ) => {
-    const { error } = await supabase
-      .from('messages')
-      .insert([
-        { 
-          sender_name: newNote.author || 'Ẩn danh', 
-          content: `[WALL OF HOPE] ${newNote.content}` 
-        }
-      ]);
-
-    if (!error) window.location.reload();
-  };
-
-  // ⚡ SỬA: Hàm gửi tin nhắn SOS khẩn cấp - Lưu trực tiếp vào bảng `messages`
-  const handleSubmitSOS = async (alertData: Omit<SOSAlert, 'id' | 'timestamp' | 'status'>) => {
-    const { error } = await supabase
-      .from('messages')
-      .insert([
-        { 
-          sender_name: `🚨 SOS: ${alertData.name || 'Ẩn danh'} (${alertData.phone || 'Không để lại SĐT'})`, 
-          content: `[TÌNH HUỐNG KHẨN CẤP] Liên hệ: ${alertData.contactMethod}. Chi tiết: ${alertData.message || 'Cần trợ giúp khẩn cấp!'}` 
-        }
-      ]);
-
-    if (error) {
-      alert('Gửi tín hiệu khẩn cấp thất bại, vui lòng thử lại!');
-    } else {
-      alert('Tín hiệu cấp cứu đã được gửi đi! Ban tham vấn sẽ liên hệ với bạn ngay lập tức.');
-      setIsSOSOpen(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 antialiased selection:bg-rose-100 selection:text-rose-900">
-      <Navbar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onOpenSOS={() => setIsSOSOpen(true)}
-        schoolName={schoolSettings.schoolName}
-      />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-teal-50/20 text-slate-800 font-sans antialiased">
+      {/* 1. THANH ĐỀU TRANG (HEADER) TINH TẾ */}
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-slate-100 px-6 py-4 shadow-sm">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-teal-50 rounded-xl text-teal-600">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-slate-900 tracking-tight">Cổng Tư Vấn Tâm Lý Học Đường</h1>
+              <p className="text-xs text-slate-500 font-medium">Trường TH và THCS Phước Hưng</p>
+            </div>
+          </div>
+          
+          <nav className="flex items-center flex-wrap gap-2 md:gap-4 text-sm font-medium text-slate-600">
+            <a href="#hom-thu" className="px-3 py-1.5 hover:text-teal-600 transition-colors">Hòm Thư Ẩn Danh</a>
+            <a href="#nguyen-vong" className="px-3 py-1.5 hover:text-teal-600 transition-colors">Nguyện Vọng</a>
+            <a href="#buc-tuong" className="px-3 py-1.5 hover:text-teal-600 transition-colors">Bức Tường Động Lực</a>
+            <a href="tel:0972374692" className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-full transition-all">Zalo Cô Trang</a>
+            <a href="#sos" className="text-xs bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-1.5 rounded-full shadow-sm animate-pulse transition-all">SOS Khẩn Cấp</a>
+          </nav>
+        </div>
+      </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 grow w-full">
-        <HeroSection
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          onOpenSOS={() => setIsSOSOpen(true)}
-          onOpenWriteModal={() => setIsWriteConfessionOpen(true)}
-          schoolSettings={schoolSettings}
-        />
+      {/* 2. KHU VỰC TRỌNG TÂM (HERO SECTION) NHẸ NHÀNG, TIN CẬY */}
+      <main className="max-w-7xl mx-auto px-4 py-12 space-y-16">
+        <section className="relative overflow-hidden bg-gradient-to-r from-teal-600 to-cyan-700 rounded-3xl p-8 md:p-12 shadow-xl text-white">
+          <div className="absolute top-0 right-0 -mt-12 -mr-12 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="relative max-w-3xl space-y-6">
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md text-teal-100 text-xs font-semibold px-3 py-1 rounded-full border border-white/10">
+              <span className="w-2 h-2 rounded-full bg-emerald-400"></span> Đang trực tuyến hỗ trợ
+            </div>
+            <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-tight">
+              Điểm tựa yêu thương &<br />Lắng nghe trọn vẹn tuổi học trò
+            </h2>
+            <p className="text-teal-50/90 text-base md:text-lg max-w-2xl font-light leading-relaxed">
+              Chào mừng các em học sinh <strong className="font-semibold text-white">Trường TH và THCS Phước Hưng</strong>! Dù là áp lực điểm số, mâu thuẫn bạn bè, hay những tâm tư khó mở lời cùng người thân, <strong className="font-semibold text-white">Cô Nguyễn Thị Thuỳ Trang</strong> luôn ở đây để lắng nghe trong sự bảo mật tuyệt đối.
+            </p>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <a href="#gui-tam-su" className="bg-white hover:bg-teal-50 text-teal-700 font-semibold px-6 py-3 rounded-xl shadow-md transition-all transform hover:-translate-y-0.5">
+                ✉️ Gửi tâm sự ẩn danh
+              </a>
+              <a href="#tra-cuu" className="bg-teal-800/40 hover:bg-teal-800/60 text-white border border-teal-500/30 font-medium px-5 py-3 rounded-xl backdrop-blur-sm transition-all">
+                🔍 Tra cứu thư riêng
+              </a>
+            </div>
+          </div>
+        </section>
 
-        {activeTab === 'confessions' && (
-          <ConfessionSection
-            confessions={confessions}
-            onAddReaction={handleAddReaction}
-            onAddComment={handleAddComment}
-            onOpenWriteModal={() => setIsWriteConfessionOpen(true)}
-            onOpenLookupModal={() => setIsLookupModalOpen(true)}
-          />
-        )}
+        {/* 3. DANH SÁCH KHỐI TÍNH NĂNG (FEATURE CARDS) HIỆN ĐẠI */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group">
+            <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center font-bold text-xl mb-4 group-hover:scale-110 transition-transform">📝</div>
+            <h3 className="font-bold text-lg text-slate-900 mb-2">Hòm Thư Ẩn Danh</h3>
+            <p className="text-sm text-slate-500 leading-relaxed">Nơi trút bỏ mọi áp lực điểm số, bất hòa bạn bè hay mâu thuẫn gia đình an toàn.</p>
+          </div>
 
-        {activeTab === 'wishbox' && (
-          <WishboxSection
-            wishes={wishes}
-            onUpvote={handleUpvoteWish}
-            onCreateWish={handleCreateWish}
-          />
-        )}
+          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group">
+            <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center font-bold text-xl mb-4 group-hover:scale-110 transition-transform">💡</div>
+            <h3 className="font-bold text-lg text-slate-900 mb-2">Góc Nguyện Vọng</h3>
+            <p className="text-sm text-slate-500 leading-relaxed">Góp ý xây dựng trường lớp, đề xuất các hoạt động chia sẻ tâm lý học đường lành mạnh.</p>
+          </div>
 
-        {activeTab === 'wall_of_hope' && (
-          <WallOfHopeSection
-            hopeNotes={hopeNotes}
-            onLikeNote={handleLikeHopeNote}
-            onCreateHopeNote={handleCreateHopeNote}
-          />
-        )}
+          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group">
+            <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center font-bold text-xl mb-4 group-hover:scale-110 transition-transform">✨</div>
+            <h3 className="font-bold text-lg text-slate-900 mb-2">Bức Tường Động Lực</h3>
+            <p className="text-sm text-slate-500 leading-relaxed">Nơi lưu giữ lời chúc tốt đẹp, câu chuyện tích cực truyền cảm hứng sống vui khỏe.</p>
+          </div>
 
-        {activeTab === 'counseling' && (
-          <CounselingSection
-            onOpenSOS={() => setIsSOSOpen(true)}
-            onOpenWriteModal={() => setIsWriteConfessionOpen(true)}
-            schoolSettings={schoolSettings}
-          />
-        )}
+          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group">
+            <div className="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center font-bold text-xl mb-4 group-hover:scale-110 transition-transform">👩‍🏫</div>
+            <h3 className="font-bold text-lg text-slate-900 mb-2">Trò chuyện 1-1</h3>
+            <p className="text-sm text-slate-500 leading-relaxed">Gửi câu hỏi và đặt lịch trò chuyện riêng tư trực tiếp cùng giáo viên Cô Thuỳ Trang.</p>
+          </div>
+        </section>
       </main>
 
-      <FloatingSOSButton onOpenSOS={() => setIsSOSOpen(true)} />
-
-      <EmergencyModal
-        isOpen={isSOSOpen}
-        onClose={() => setIsSOSOpen(false)}
-        onSubmitSOS={handleSubmitSOS}
-        schoolSettings={schoolSettings}
-      />
-
-      <ConfessionModal
-        isOpen={isWriteConfessionOpen}
-        onClose={() => setIsWriteConfessionOpen(false)}
-        onSubmit={handleCreateConfession}
-      />
-
-      <CounselorLookupModal
-        isOpen={isLookupModalOpen}
-        onClose={() => setIsLookupModalOpen(false)}
-        confessions={confessions}
-      />
-
-      <Footer
-        onOpenSOS={() => setIsSOSOpen(true)}
-        setActiveTab={setActiveTab}
-        schoolSettings={schoolSettings}
-      />
+      {/* 4. CHÂN TRANG CHUYÊN NGHIỆP */}
+      <footer className="mt-20 border-t border-slate-100 bg-slate-50/50 py-8 px-6 text-center text-xs text-slate-400 font-medium">
+        © {new Date().getFullYear()} Cổng Tư Vấn Tâm Lý Học Đường - Trường TH và THCS Phước Hưng. Bảo lưu mọi quyền.
+      </footer>
     </div>
   );
 }
