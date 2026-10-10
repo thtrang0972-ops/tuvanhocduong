@@ -14,6 +14,9 @@ import { Footer } from './components/Footer';
 import { Confession, WishItem, HopeNote, SOSAlert } from './types';
 import { DEFAULT_SCHOOL_SETTINGS } from './data/mockData';
 
+// ➕ Nhập cấu hình kết nối Supabase mà bạn đã tạo ở Bước 2
+import { supabase } from './supabaseClient';
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<'confessions' | 'wishbox' | 'wall_of_hope' | 'counseling'>('confessions');
 
@@ -28,12 +31,37 @@ export default function App() {
   const [hopeNotes, setHopeNotes] = useState<HopeNote[]>([]);
   const [, setSosAlerts] = useState<SOSAlert[]>([]);
 
+  // ➕ Tự động tải dữ liệu từ Supabase về khi trang web vừa mở lên
+  useEffect(() => {
+    const fetchAllData = async () => {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        // Lọc và phân loại tin nhắn dựa theo nội dung hoặc tag (nếu có định nghĩa)
+        // Hiện tại gộp chung đổ vào danh sách để hiển thị test tính năng nhắn nhận
+        const mappedConfessions: Confession[] = data.map((item: any) => ({
+          id: item.id,
+          title: `Tin nhắn từ ${item.sender_name || 'Ẩn danh'}`,
+          content: item.content || '',
+          createdAt: item.created_at,
+          category: 'Chung',
+          reactions: { hug: 0, sympathy: 0, cheer: 0, sparkle: 0 },
+          comments: []
+        }));
+        setConfessions(mappedConfessions);
+      }
+    };
+
+    fetchAllData();
+  }, []);
+
   const handleAddReaction = async (
     confessionId: string,
     reactionType: 'hug' | 'sympathy' | 'cheer' | 'sparkle'
   ) => {
-    const confessionToUpdate = confessions.find((c) => c.id === confessionId);
-    if (!confessionToUpdate) return;
     console.log(`Đã thả cảm xúc ${reactionType} vào bài ${confessionId}`);
   };
 
@@ -42,18 +70,35 @@ export default function App() {
     commentText: string,
     authorNickname = 'Bạn học quan tâm'
   ) => {
-    const confessionToUpdate = confessions.find((c) => c.id === confessionId);
-    if (!confessionToUpdate) return;
     console.log(`Bình luận mới từ ${authorNickname}: ${commentText}`);
   };
 
+  // ⚡ SỬA: Hàm gửi Confession (Lời tự sự) - Lưu trực tiếp vào bảng `messages`
   const handleCreateConfession = async (
     newConf: Omit<Confession, 'id' | 'createdAt' | 'reactions' | 'userReactions' | 'comments'>
   ) => {
     const trackingCode = newConf.isPrivateToCounselor
       ? `TL-${Math.floor(1000 + Math.random() * 9000)}`
       : undefined;
-    console.log(`Đã tạo Confession mới`);
+
+    // Tiến hành đẩy lên Supabase
+    const { error } = await supabase
+      .from('messages')
+      .insert([
+        { 
+          sender_name: newConf.nickname || 'Ẩn danh', 
+          content: `[CONFESSION] ${newConf.content}` 
+        }
+      ]);
+
+    if (error) {
+      console.error('Lỗi khi gửi lên Supabase:', error);
+    } else {
+      console.log('Đã lưu Confession thành công vào Supabase!');
+      // Reload lại dữ liệu để cập nhật màn hình
+      window.location.reload();
+    }
+
     return { trackingCode };
   };
 
@@ -61,24 +106,59 @@ export default function App() {
     console.log(`Đã vote cho wish ${wishId}`);
   };
 
+  // ⚡ SỬA: Hàm tạo Wish (Hòm điều ước) - Lưu trực tiếp vào bảng `messages`
   const handleCreateWish = async (
     newWish: Omit<WishItem, 'id' | 'createdAt' | 'upvotes' | 'hasUpvoted' | 'status' | 'schoolReply'>
   ) => {
-    console.log(`Đã tạo Wish mới`);
+    const { error } = await supabase
+      .from('messages')
+      .insert([
+        { 
+          sender_name: 'Học sinh ước', 
+          content: `[WISHBOX] ${newWish.content}` 
+        }
+      ]);
+
+    if (!error) window.location.reload();
   };
 
   const handleLikeHopeNote = async (noteId: string) => {
     console.log(`Đã thả tim cho note ${noteId}`);
   };
 
+  // ⚡ SỬA: Hàm tạo Hope Note (Lời chúc) - Lưu trực tiếp vào bảng `messages`
   const handleCreateHopeNote = async (
     newNote: Omit<HopeNote, 'id' | 'likes' | 'hasLiked' | 'createdAt'>
   ) => {
-    console.log(`Đã tạo Hope Note mới`);
+    const { error } = await supabase
+      .from('messages')
+      .insert([
+        { 
+          sender_name: newNote.author || 'Ẩn danh', 
+          content: `[WALL OF HOPE] ${newNote.content}` 
+        }
+      ]);
+
+    if (!error) window.location.reload();
   };
 
+  // ⚡ SỬA: Hàm gửi tin nhắn SOS khẩn cấp - Lưu trực tiếp vào bảng `messages`
   const handleSubmitSOS = async (alertData: Omit<SOSAlert, 'id' | 'timestamp' | 'status'>) => {
-    console.log(`Đã gửi SOS`);
+    const { error } = await supabase
+      .from('messages')
+      .insert([
+        { 
+          sender_name: `🚨 SOS: ${alertData.name || 'Ẩn danh'} (${alertData.phone || 'Không để lại SĐT'})`, 
+          content: `[TÌNH HUỐNG KHẨN CẤP] Liên hệ: ${alertData.contactMethod}. Chi tiết: ${alertData.message || 'Cần trợ giúp khẩn cấp!'}` 
+        }
+      ]);
+
+    if (error) {
+      alert('Gửi tín hiệu khẩn cấp thất bại, vui lòng thử lại!');
+    } else {
+      alert('Tín hiệu cấp cứu đã được gửi đi! Ban tham vấn sẽ liên hệ với bạn ngay lập tức.');
+      setIsSOSOpen(false);
+    }
   };
 
   return (
