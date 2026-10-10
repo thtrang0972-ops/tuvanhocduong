@@ -1,10 +1,16 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from 'tailwindcss';
+import autoprefixer from 'autoprefixer';
 
-// Cấu hình tối giản thuần Vite giúp tương thích 100% với môi trường Vercel mà không bị lỗi kiểu dữ liệu
 export default defineConfig({
   plugins: [react()],
   base: '/',
+  css: {
+    postcss: {
+      plugins: [tailwindcss, autoprefixer],
+    },
+  },
   build: {
     outDir: 'dist',
   }
