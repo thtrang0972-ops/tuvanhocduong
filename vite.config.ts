@@ -8,10 +8,15 @@ export default defineConfig({
   base: '/',
   css: {
     postcss: {
-      plugins: [tailwindcss, autoprefixer],
+      plugins: [
+        tailwindcss(),
+        autoprefixer(),
+      ],
     },
   },
   build: {
     outDir: 'dist',
+    cssCodeSplit: false // Ép hệ thống gom CSS lại thành một file duy nhất để Vercel không bị sót giao diện
   }
 });
+
