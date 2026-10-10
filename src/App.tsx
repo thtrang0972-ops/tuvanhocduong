@@ -26,12 +26,12 @@ export default function App() {
       return;
     }
     const randomCode = 'PH-' + Math.floor(100000 + Math.random() * 900000);
-    alert(`✉️ Lời tâm sự của em đã được mã hóa an toàn!\nMÃ TRA CỨU: ${randomCode}`);
+    alert(`✉️ Lời tâm sự của em đã được chuyển đến cô Trang!\nMÃ TRA CỨU: ${randomCode}`);
     setFormData({ category: 'Áp lực thi cử & Điểm số', title: '', content: '' });
   };
 
-  const handleAnswerSelect = (qId: number, score: number) => {
-    setTestAnswers(prev => ({ ...prev, [qId]: score }));
+  const handleAnswerSelect = (qId: number, val: number) => {
+    setTestAnswers(prev => ({ ...prev, [qId]: val }));
   };
 
   const calculateTestScore = () => {
@@ -44,9 +44,9 @@ export default function App() {
     if (totalScore <= 4) {
       setTestResult(`🟢 Bình thường (${totalScore} điểm). Tinh thần ổn định.`);
     } else if (totalScore <= 8) {
-      setTestResult(`🟡 Mức độ nhẹ (${totalScore} điểm). Em nên dành thời gian nghỉ ngơi thư giãn.`);
+      setTestResult(`🟡 Mức độ nhẹ (${totalScore} điểm). Em nên dành thời gian nghỉ ngơi.`);
     } else {
-      setTestResult(`🔴 Mức độ cao (${totalScore} điểm). Em hãy kết nối ngay với cô Trang để được hỗ trợ nhé.`);
+      setTestResult(`🔴 Mức độ cao (${totalScore} điểm). Em hãy kết nối với cô Trang để được hỗ trợ nhé.`);
     }
   };
 
@@ -141,4 +141,9 @@ export default function App() {
                 <div key={q.id} className="pt-4 first:pt-0 space-y-2">
                   <p className="text-xs font-semibold text-slate-700">{q.id}. {q.text}</p>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {[{ val: 0, txt: "Không đúng tí nào" }, { val: 1, txt: "Đúng một phần" }, { val: 2, txt: "Đúng phần lớn" }, { val: 3, txt: "Hoàn toàn đúng" }].map((opt) => (
+                    {[
+                      { val: 0, txt: "Không đúng tí nào" },
+                      { val: 1, txt: "Đúng một phần" },
+                      { val: 2, txt: "Đúng phần lớn" },
+                      { val: 3, txt: "Hoàn toàn đúng" }
+                    ].map((opt) => (
